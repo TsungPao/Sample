@@ -56,26 +56,32 @@ class GUIFrame2(Sample04.MyFrame2):
         Sample04.MyFrame2.__init__(self, parent)
 
     def OnBtnClick2( self, event ):
-        print('btn2')
+        print('點擊btn2')
         print(self)
         event.Skip()
 
     def OnBtnClick3( self, event ):
+        print('點擊btn3')
         event.Skip()
 
     def OnBtnClick4( self, event ):
+        print('點擊btn4')
         event.Skip()
 
     def OnBtnClick5( self, event ):
+        print('點擊btn5')
         event.Skip()
 
     def OnBtnClick6( self, event ):
+        print('點擊btn6')
         event.Skip()
 
     def OnBtnClick7( self, event ):
+        print('點擊btn7')
         event.Skip()
 
     def OnBtnClick8( self, event ):
+        print('點擊btn8')
         event.Skip()
 
     def OnCloseWindow(self, event):
