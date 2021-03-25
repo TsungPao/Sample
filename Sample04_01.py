@@ -58,7 +58,6 @@ class GUIFrame2(Sample04.MyFrame2):
 
     def OnBtnClick2( self, event ):
         print('點擊btn2')
-        print(self)
         event.Skip()
 
     def OnBtnClick3( self, event ):
