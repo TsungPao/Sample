@@ -3,10 +3,12 @@
 import wx
 import os
 import csv
+import matplotlib.pyplot as plt
 
 import wx.lib.mixins.listctrl as listmix
 
-#---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 wildcard = "Python source (*.py)|*.py|" \
            "Compiled Python (*.pyc)|*.pyc|" \
            "SPAM files (*.spam)|*.spam|" \
@@ -23,11 +25,26 @@ listctrldata = {
     6 : ("and cursor up", "to", "navigate"),
 }
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+name_list = ['lambda=0', 'lambda=0.05', 'lambda=0.1', 'lambda=0.5']
+num_list = [52.4, 57.8, 59.1, 54.6]
 
-class TestListCtrl(wx.ListCtrl,
-                   listmix.ListCtrlAutoWidthMixin,
-                   listmix.TextEditMixin):
+
+def showchart():
+    rects = plt.bar(range(len(num_list)), num_list, color='rgby')
+    # X軸標題
+    index = [0, 1, 2, 3]
+    index = [float(c)+0.4 for c in index]
+    plt.ylim(ymax=80, ymin=0)
+    plt.xticks(index, name_list)
+    plt.ylabel("arrucay(%)")    # X軸標籤
+    for rect in rects:
+        height = rect.get_height()
+        plt.text(rect.get_x() + rect.get_width() / 2, height, str(height) + '%', ha='center', va='bottom')
+    plt.show()
+
+
+class TestListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.TextEditMixin):
 
     def __init__(self, parent, ID, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0):
@@ -36,7 +53,6 @@ class TestListCtrl(wx.ListCtrl,
         listmix.ListCtrlAutoWidthMixin.__init__(self)
         self.Populate()
         listmix.TextEditMixin.__init__(self)
-
 
     def Populate(self):
         # for normal, simple columns, you can add them like this:
@@ -60,7 +76,6 @@ class TestListCtrl(wx.ListCtrl,
 
         self.currentItem = 0
 
-
     def SetStringItem(self, index, col, data):
         if col in range(3):
             wx.ListCtrl.SetItem(self, index, col, data)
@@ -75,6 +90,7 @@ class TestListCtrl(wx.ListCtrl,
 
             data = self.GetItem(index, col-3).GetText()
             wx.ListCtrl.SetItem(self, index, col-3, data[0:datalen])
+
 
 class HelloFrame(wx.Frame):
     def __init__(self, *args, **kw):
@@ -107,7 +123,6 @@ class HelloFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnChart,  b2)
         self.Bind(wx.EVT_BUTTON, self.OnSave, b3)
 
-
     def OnOpen(self, event):
         dlg = wx.FileDialog(
             self, message="Choose a file",
@@ -121,13 +136,20 @@ class HelloFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
             path = paths[0]
-            with open(path, 'r', encoding="utf-8") as f:
+            with open(path, 'r', encoding="utf-8-sig") as f:    # https://blog.csdn.net/idwtwt/article/details/100328331
                 rows = csv.reader(f)
                 global listctrldata
+                global num_list
                 listctrldata.clear()
                 for idx, val in enumerate(rows):
                     tex = tuple([i for i in val])
                     listctrldata[idx] = tex
+
+                    if idx == 0:
+                        num_list.clear()
+                        for n in val:
+                            num_list.append(float(n))
+
                 f.close()
             self.lsv.ClearAll()
             self.lsv.Populate()
@@ -135,11 +157,29 @@ class HelloFrame(wx.Frame):
         dlg.Destroy()
 
     def OnChart(self, event):
-        print('Chart')
-
+        showchart()
 
     def OnSave(self, event):
-        print('Save')
+        count = self.lsv.GetItemCount()
+        cols = self.lsv.GetColumnCount()
+        text = [[0 for i in range(cols)] for j in range(count)]     # 初始化陣列
+
+        for row in range(count):
+            for col in range(cols):
+                item = self.lsv.GetItem(itemIdx=row, col=col)
+                text[row][col] = item.GetText()
+        print(text)
+        dlg = wx.FileDialog(
+            self, message="Save file as ...", defaultDir=os.getcwd(),
+            defaultFile="", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+        )
+        dlg.SetFilterIndex(2)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            with open(path, 'w', newline='') as f:
+                writer = csv.writer(f, delimiter=' ')
+                writer.writerows(text)
+        dlg.Destroy()
 
 
 if __name__ == '__main__':
